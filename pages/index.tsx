@@ -5,7 +5,7 @@ import _ from 'lodash'
 
 interface Game {
 	date: string
-	division: string
+	who: string
 	field: string
 	home: string
 	away: string
@@ -28,9 +28,17 @@ function gameFactory({
 	home_team,
 	visit_team,
 }: GameData): Game {
+	const who =
+		division_name === 'Division 3'
+			? 'Nad'
+			: division_name === 'Premier'
+			? 'Mo'
+			: division_name === '1'
+			? 'Kat'
+			: '?'
 	return {
 		date: `${date} ${Time}`,
-		division: division_name,
+		who,
 		field: field_name,
 		home: home_team,
 		away: visit_team,
@@ -64,17 +72,17 @@ function Home({ games }: GameProps) {
 				<thead>
 					<tr>
 						<th>Date</th>
-						<th>Div</th>
+						<th>Who</th>
 						<th>Field</th>
 						<th>Home</th>
 						<th>Away</th>
 					</tr>
 				</thead>
 				<tbody>
-					{games.map(({ date, division, field, home, away }) => (
-						<tr key={`${date}-${division}`}>
+					{games.map(({ date, who, field, home, away }) => (
+						<tr key={`${date}-${who}`}>
 							<td>{date}</td>
-							<td>{division}</td>
+							<td>{who}</td>
 							<td>{field}</td>
 							<td>{home}</td>
 							<td>{away}</td>
