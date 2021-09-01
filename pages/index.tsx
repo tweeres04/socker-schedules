@@ -68,28 +68,30 @@ function Home({ games }: GameProps) {
 			</Head>
 
 			<h1>Socker Schedules</h1>
-			<table className="table">
-				<thead>
-					<tr>
-						<th>Date</th>
-						<th>Who</th>
-						<th>Field</th>
-						<th>Home</th>
-						<th>Away</th>
-					</tr>
-				</thead>
-				<tbody>
-					{games.map(({ date, who, field, home, away }) => (
-						<tr key={`${date}-${who}`}>
-							<td>{date}</td>
-							<td>{who}</td>
-							<td>{field}</td>
-							<td>{home}</td>
-							<td>{away}</td>
+			<div className="table-responsive">
+				<table className="table">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Who</th>
+							<th>Field</th>
+							<th>Home</th>
+							<th>Away</th>
 						</tr>
-					))}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{games.map(({ date, who, field, home, away }) => (
+							<tr key={`${date}-${who}`}>
+								<td>{date}</td>
+								<td>{who}</td>
+								<td>{field}</td>
+								<td>{home}</td>
+								<td>{away}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	)
 }
