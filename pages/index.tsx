@@ -109,8 +109,14 @@ function Home({ games }: GameProps) {
 										}
 									>
 										<td>
-											<div>
+											<div className="d-none d-lg-block">
 												{dateFormat(date, 'eee LLL d')}
+											</div>
+											<div className="d-lg-none">
+												{dateFormat(date, 'eee')}
+											</div>
+											<div className="d-lg-none">
+												{dateFormat(date, 'LLL d')}
 											</div>
 											<div>
 												{dateFormat(date, 'h:mma')}
