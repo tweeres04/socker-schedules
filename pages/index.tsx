@@ -2,9 +2,7 @@ import Head from 'next/head'
 import fs from 'fs/promises'
 import parse from 'csv-parse/lib/sync'
 import _ from 'lodash'
-import { parse as parseDate, isPast } from 'date-fns'
-
-const formatString = 'yyyy-LL-dd h:mma'
+import { parse as parseDate, format as dateFormat, isPast } from 'date-fns'
 
 interface Game {
 	date: string
@@ -21,6 +19,14 @@ interface GameData {
 	field_name: string
 	home_team: string
 	visit_team: string
+}
+
+function cleanDate(date: string) {
+	return date.replace('  ', ' ')
+}
+
+function cleanTeam(team: string) {
+	return team.replace("Susan's", 'Susans')
 }
 
 function gameFactory({
@@ -40,11 +46,11 @@ function gameFactory({
 			? 'Kat'
 			: '?'
 	return {
-		date: `${date} ${Time}`,
+		date: cleanDate(`${date} ${Time}`),
 		who,
 		field: field_name,
-		home: home_team,
-		away: visit_team,
+		home: cleanTeam(home_team),
+		away: cleanTeam(visit_team),
 	}
 }
 
@@ -68,6 +74,9 @@ function Home({ games }: GameProps) {
 					integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
 					crossOrigin="anonymous"
 				></link>
+				<style>{`td {
+					vertical-align: middle;
+				}`}</style>
 			</Head>
 
 			<h1>Socker Schedules</h1>
@@ -83,30 +92,38 @@ function Home({ games }: GameProps) {
 						</tr>
 					</thead>
 					<tbody>
-						{games.map(({ date, who, field, home, away }) => {
-							return (
-								<tr
-									key={`${date}-${who}`}
-									className={
-										isPast(
-											parseDate(
-												date,
-												formatString,
-												new Date()
-											)
-										)
-											? 'table-secondary'
-											: ''
-									}
-								>
-									<td>{date}</td>
-									<td>{who}</td>
-									<td>{field}</td>
-									<td>{home}</td>
-									<td>{away}</td>
-								</tr>
-							)
-						})}
+						{games.map(
+							({ date: dateString, who, field, home, away }) => {
+								const date = parseDate(
+									dateString,
+									'yyyy-LL-dd h:mmaa',
+									new Date()
+								)
+								return (
+									<tr
+										key={`${date}-${who}`}
+										className={
+											isPast(date)
+												? 'table-secondary'
+												: ''
+										}
+									>
+										<td>
+											<div>
+												{dateFormat(date, 'eee LLL d')}
+											</div>
+											<div>
+												{dateFormat(date, 'h:mma')}
+											</div>
+										</td>
+										<td>{who}</td>
+										<td>{field}</td>
+										<td>{home}</td>
+										<td>{away}</td>
+									</tr>
+								)
+							}
+						)}
 					</tbody>
 				</table>
 			</div>
