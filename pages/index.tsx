@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import fs from 'fs/promises'
 import parse from 'csv-parse/lib/sync'
@@ -59,6 +60,10 @@ type GameProps = {
 }
 
 function Home({ games }: GameProps) {
+	const [shouldMarkPastGames, setShouldMarkPastGames] = useState(false)
+	useEffect(() => {
+		setShouldMarkPastGames(true)
+	}, [shouldMarkPastGames])
 	return (
 		<div className="container">
 			<Head>
@@ -103,7 +108,7 @@ function Home({ games }: GameProps) {
 									<tr
 										key={`${date}-${who}`}
 										className={
-											isPast(date)
+											shouldMarkPastGames && isPast(date)
 												? 'table-secondary'
 												: ''
 										}
