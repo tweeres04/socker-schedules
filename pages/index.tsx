@@ -22,6 +22,12 @@ interface GameData {
 	visit_team: string
 }
 
+const colours = {
+	Mo: '#231F20',
+	Kat: '#BB4430',
+	Nad: '#7EBDC2',
+}
+
 function cleanDate(date: string) {
 	return date.replace('  ', ' ')
 }
@@ -112,6 +118,13 @@ function Home({ games }: GameProps) {
 												? 'table-secondary'
 												: ''
 										}
+										style={{
+											borderLeft: `5px solid ${
+												colours[
+													who as keyof typeof colours
+												]
+											}`,
+										}}
 									>
 										<td>
 											<div className="d-none d-lg-block">
