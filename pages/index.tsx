@@ -63,9 +63,10 @@ function gameFactory({
 
 type GameProps = {
 	games: Game[]
+	dateFetched: string
 }
 
-function Home({ games }: GameProps) {
+function Home({ games, dateFetched }: GameProps) {
 	const [shouldMarkPastGames, setShouldMarkPastGames] = useState(false)
 	useEffect(() => {
 		setShouldMarkPastGames(true)
@@ -91,6 +92,9 @@ function Home({ games }: GameProps) {
 			</Head>
 
 			<h1>Socker Schedules</h1>
+			<p>
+				<small>Last updated: {dateFetched}</small>
+			</p>
 			<div className="table-responsive">
 				<table className="table">
 					<thead>
@@ -162,6 +166,7 @@ export async function getStaticProps() {
 			return fs.readFile(`data/${filename}.csv`, 'utf8')
 		})
 	)
+	const dateFetched = await fs.readFile('data/fetch-date', 'utf8')
 
 	const gameData = csvStrings.reduce<GameData[]>(
 		(result, csvString) => [
@@ -174,7 +179,7 @@ export async function getStaticProps() {
 	let games = gameData.map(gameFactory)
 	games = _.orderBy(games, 'date')
 
-	return { props: { games } }
+	return { props: { games, dateFetched } }
 }
 
 export default Home
