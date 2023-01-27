@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import fs from 'fs/promises'
 import parse from 'csv-parse/lib/sync'
@@ -66,11 +66,27 @@ type GameProps = {
 	dateFetched: string
 }
 
-function Home({ games, dateFetched }: GameProps) {
+function useShouldMarkPastGames() {
 	const [shouldMarkPastGames, setShouldMarkPastGames] = useState(false)
 	useEffect(() => {
 		setShouldMarkPastGames(true)
 	}, [shouldMarkPastGames])
+
+	useLayoutEffect(() => {
+		if (shouldMarkPastGames) {
+			const nextGameRow = document.querySelector(
+				'tbody tr:not(.table-secondary)'
+			)
+
+			nextGameRow?.scrollIntoView({ behavior: 'auto' })
+		}
+	}, [shouldMarkPastGames])
+
+	return shouldMarkPastGames
+}
+
+function Home({ games, dateFetched }: GameProps) {
+	const shouldMarkPastGames = useShouldMarkPastGames()
 	return (
 		<div className="container">
 			<Head>
