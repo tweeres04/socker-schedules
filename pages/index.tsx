@@ -98,6 +98,10 @@ function Home({ games, dateFetched }: GameProps) {
 				<link rel="icon" href="/soccer-ball.png" />
 				<link rel="manifest" href="/manifest.json"></link>
 				<link rel="apple-touch-icon" href="/soccer-ball.png"></link>
+				<meta
+					name="apple-mobile-web-app-status-bar-style"
+					content="black"
+				></meta>
 				<link
 					href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
 					rel="stylesheet"
