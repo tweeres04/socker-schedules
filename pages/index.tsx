@@ -113,7 +113,7 @@ function Home({ games, dateFetched }: GameProps) {
 				}`}</style>
 			</Head>
 
-			<h1>Socker Schedules</h1>
+			<h1 className="mt-1">Socker Schedules</h1>
 			<p>
 				<small>Last updated: {dateFetched}</small>
 			</p>
