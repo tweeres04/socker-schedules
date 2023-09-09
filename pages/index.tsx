@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import fs from 'fs/promises'
-import parse from 'csv-parse/lib/sync'
+import { parse } from 'csv-parse/sync'
 import _ from 'lodash'
 import { parse as parseDate, format as dateFormat, isPast } from 'date-fns'
 
@@ -49,7 +49,7 @@ function gameFactory({
 			? 'Nad'
 			: division_name === 'Premier'
 			? 'Mo'
-			: division_name === '1'
+			: division_name === 'Over 30'
 			? 'Kat'
 			: '?'
 	return {
