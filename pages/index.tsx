@@ -78,7 +78,10 @@ function useShouldMarkPastGames() {
 				'tbody tr:not(.table-secondary)'
 			)
 
-			nextGameRow?.scrollIntoView({ behavior: 'auto' })
+			nextGameRow?.scrollIntoView({
+				behavior: 'auto',
+				block: 'nearest',
+			})
 		}
 	}, [shouldMarkPastGames])
 
