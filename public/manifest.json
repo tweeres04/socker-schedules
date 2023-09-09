@@ -1,0 +1,10 @@
+{
+	"name": "Socker Schedules",
+	"icons": [
+		{
+			"src": "/soccer-ball.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		}
+	]
+}

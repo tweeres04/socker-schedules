@@ -95,7 +95,9 @@ function Home({ games, dateFetched }: GameProps) {
 					name="description"
 					content="Socker schedules for my friends"
 				/>
-				<link rel="icon" href="/favicon.ico" />
+				<link rel="icon" href="/soccer-ball.png" />
+				<link rel="manifest" href="/manifest.json"></link>
+				<link rel="apple-touch-icon" href="/soccer-ball.png"></link>
 				<link
 					href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
 					rel="stylesheet"
