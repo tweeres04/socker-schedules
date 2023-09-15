@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import { parse } from 'csv-parse/sync'
-import { orderBy, capitalize } from 'lodash'
+import { orderBy, capitalize, uniq } from 'lodash'
 import {
 	parse as parseDate,
 	format as dateFormat,
@@ -34,8 +34,8 @@ const colours = {
 	Mo: '#51a3a3',
 	Kat: '#75485e',
 	Nad: '#cb904d',
-	Tash: '#DFCC74',
-	Chris: '#C3E991',
+	Tash: '#132E32',
+	Chris: '#3E442B',
 }
 
 function cleanDate(date: string) {
@@ -86,8 +86,59 @@ function useShouldMarkPastGames() {
 	return shouldMarkPastGames
 }
 
+function peopleFromGames(games: Game[]) {
+	return uniq(games.map((g) => g.who)).map(capitalize)
+}
+
+function usePeopleFilter(games: Game[]) {
+	const [peopleToShow, setPeopleToShow] = useState<string[]>([])
+	const people = peopleFromGames(games)
+
+	function togglePerson(person: string) {
+		return function () {
+			setPeopleToShow((prevPeopleToShow) => {
+				if (prevPeopleToShow.some((p) => p === person)) {
+					return prevPeopleToShow.filter((p) => p !== person)
+				} else {
+					return [...prevPeopleToShow, person]
+				}
+			})
+		}
+	}
+
+	function PeopleFilter() {
+		return people.map((p) => (
+			<div className="form-check form-check-inline">
+				<label htmlFor={`${p}_filter`} className="form-check-label">
+					{p}
+				</label>
+				<input
+					className="form-check-input"
+					id={`${p}_filter`}
+					key={p}
+					type="checkbox"
+					onClick={togglePerson(p)}
+					checked={peopleToShow.some((p_) => p === p_)}
+					style={{
+						backgroundColor: colours[p],
+						borderColor: colours[p],
+					}}
+				/>
+			</div>
+		))
+	}
+
+	return { peopleToShow, PeopleFilter }
+}
+
 function Home({ games, dateFetched }: GameProps) {
 	const shouldMarkPastGames = useShouldMarkPastGames()
+	const { PeopleFilter, peopleToShow } = usePeopleFilter(games)
+
+	if (peopleToShow.length > 0) {
+		games = games.filter((g) => peopleToShow.includes(g.who))
+	}
+
 	return (
 		<div className="container">
 			<Head>
@@ -118,6 +169,7 @@ function Home({ games, dateFetched }: GameProps) {
 			<p>
 				<small>Last updated: {dateFetched}</small>
 			</p>
+			<PeopleFilter />
 			<div className="table-responsive">
 				<table className="table">
 					<thead>
