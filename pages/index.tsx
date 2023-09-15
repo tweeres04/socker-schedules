@@ -8,6 +8,7 @@ import {
 	isPast,
 	differenceInHours,
 } from 'date-fns'
+import { utcToZonedTime } from 'date-fns-tz'
 import { kv } from '@vercel/kv'
 import { get, set } from 'idb-keyval'
 
@@ -312,10 +313,14 @@ export async function getStaticProps() {
 	let games = gameData.map(gameFactory)
 	games = orderBy(games, 'date')
 
+	const zonedTime = utcToZonedTime(
+		new Date(dateFetched as string),
+		'America/Vancouver'
+	)
 	const dateFetchedFormatted = new Intl.DateTimeFormat('en-CA', {
 		dateStyle: 'full',
 		timeStyle: 'short',
-	}).format(new Date(dateFetched as string))
+	}).format(zonedTime)
 
 	return { props: { games, dateFetched: dateFetchedFormatted } }
 }
