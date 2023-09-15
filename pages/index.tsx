@@ -1,9 +1,16 @@
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
-import fs from 'fs/promises'
 import { parse } from 'csv-parse/sync'
 import _ from 'lodash'
-import { parse as parseDate, format as dateFormat, isPast } from 'date-fns'
+import {
+	parse as parseDate,
+	format as dateFormat,
+	isPast,
+	differenceInHours,
+} from 'date-fns'
+import { kv } from '@vercel/kv'
+
+import { downloadSchedules } from '../lib/getSchedules.mjs'
 
 interface Game {
 	date: string
@@ -185,18 +192,25 @@ function Home({ games, dateFetched }: GameProps) {
 }
 
 export async function getStaticProps() {
-	const filenames = ['nad', 'mo', 'kat']
+	const dateFetched = await kv.get<string>(`socker-schedules:fetch-date`)
+
+	if (differenceInHours(new Date(), new Date(dateFetched as string)) > 12) {
+		await downloadSchedules()
+	} else {
+		console.log('Skipping downloading schedules')
+	}
+
+	const people = ['nad', 'mo', 'kat']
 	const csvStrings = await Promise.all(
-		filenames.map((filename) => {
-			return fs.readFile(`data/${filename}.csv`, 'utf8')
+		people.map((person) => {
+			return kv.get<string>(`socker-schedules:${person}`)
 		})
 	)
-	const dateFetched = await fs.readFile('data/fetch-date', 'utf8')
 
 	const gameData = csvStrings.reduce<GameData[]>(
 		(result, csvString) => [
 			...result,
-			...parse(csvString, { columns: true }),
+			...parse(csvString as string, { columns: true }),
 		],
 		[]
 	)
@@ -204,7 +218,12 @@ export async function getStaticProps() {
 	let games = gameData.map(gameFactory)
 	games = _.orderBy(games, 'date')
 
-	return { props: { games, dateFetched } }
+	const dateFetchedFormatted = new Intl.DateTimeFormat('en-CA', {
+		dateStyle: 'full',
+		timeStyle: 'short',
+	}).format(new Date(dateFetched as string))
+
+	return { props: { games, dateFetched: dateFetchedFormatted } }
 }
 
 export default Home
