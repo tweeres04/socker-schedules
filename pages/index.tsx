@@ -9,6 +9,7 @@ import {
 	differenceInHours,
 } from 'date-fns'
 import { kv } from '@vercel/kv'
+import { get, set } from 'idb-keyval'
 
 import { downloadSchedules } from '../lib/getSchedules.mjs'
 
@@ -91,24 +92,41 @@ function peopleFromGames(games: Game[]) {
 }
 
 function usePeopleFilter(games: Game[]) {
+	const keyvalKey = 'peopleToShow'
 	const [peopleToShow, setPeopleToShow] = useState<string[]>([])
+	const [loading, setLoading] = useState(true)
 	const people = peopleFromGames(games)
+
+	useEffect(() => {
+		async function getStoredPeople() {
+			const result = await get(keyvalKey)
+			if (result) {
+				setPeopleToShow(result)
+			}
+			setLoading(false)
+		}
+
+		getStoredPeople()
+	}, [])
 
 	function togglePerson(person: string) {
 		return function () {
 			setPeopleToShow((prevPeopleToShow) => {
+				let result
 				if (prevPeopleToShow.some((p) => p === person)) {
-					return prevPeopleToShow.filter((p) => p !== person)
+					result = prevPeopleToShow.filter((p) => p !== person)
 				} else {
-					return [...prevPeopleToShow, person]
+					result = [...prevPeopleToShow, person]
 				}
+				set(keyvalKey, result)
+				return result
 			})
 		}
 	}
 
 	function PeopleFilter() {
 		return people.map((p) => (
-			<div className="form-check form-check-inline">
+			<div className="form-check form-check-inline" key={p}>
 				<label htmlFor={`${p}_filter`} className="form-check-label">
 					{p}
 				</label>
@@ -120,20 +138,24 @@ function usePeopleFilter(games: Game[]) {
 					onClick={togglePerson(p)}
 					checked={peopleToShow.some((p_) => p === p_)}
 					style={{
-						backgroundColor: colours[p],
-						borderColor: colours[p],
+						backgroundColor: colours[p as keyof typeof colours],
+						borderColor: colours[p as keyof typeof colours],
 					}}
 				/>
 			</div>
 		))
 	}
 
-	return { peopleToShow, PeopleFilter }
+	return { loading, peopleToShow, PeopleFilter }
 }
 
 function Home({ games, dateFetched }: GameProps) {
 	const shouldMarkPastGames = useShouldMarkPastGames()
-	const { PeopleFilter, peopleToShow } = usePeopleFilter(games)
+	const {
+		loading: loadingPeopleToShow,
+		PeopleFilter,
+		peopleToShow,
+	} = usePeopleFilter(games)
 
 	if (peopleToShow.length > 0) {
 		games = games.filter((g) => peopleToShow.includes(g.who))
@@ -169,67 +191,90 @@ function Home({ games, dateFetched }: GameProps) {
 			<p>
 				<small>Last updated: {dateFetched}</small>
 			</p>
-			<PeopleFilter />
-			<div className="table-responsive">
-				<table className="table">
-					<thead>
-						<tr>
-							<th>Date</th>
-							<th>Who</th>
-							<th>Field</th>
-							<th>Home</th>
-							<th>Away</th>
-						</tr>
-					</thead>
-					<tbody>
-						{games.map(
-							({ date: dateString, who, field, home, away }) => {
-								const date = parseDate(
-									dateString,
-									'yyyy-LL-dd h:mmaa',
-									new Date()
-								)
-								return (
-									<tr
-										key={`${date}-${who}`}
-										className={
-											shouldMarkPastGames && isPast(date)
-												? 'table-secondary'
-												: ''
-										}
-										style={{
-											borderLeft: `5px solid ${
-												colours[
-													who as keyof typeof colours
-												]
-											}`,
-										}}
-									>
-										<td>
-											<div className="d-none d-lg-block">
-												{dateFormat(date, 'eee LLL d')}
-											</div>
-											<div className="d-lg-none">
-												{dateFormat(date, 'eee')}
-											</div>
-											<div className="d-lg-none">
-												{dateFormat(date, 'LLL d')}
-											</div>
-											<div>
-												{dateFormat(date, 'h:mma')}
-											</div>
-										</td>
-										<td>{who}</td>
-										<td>{field}</td>
-										<td>{home}</td>
-										<td>{away}</td>
-									</tr>
-								)
-							}
-						)}
-					</tbody>
-				</table>
-			</div>
+			{loadingPeopleToShow ? null : (
+				<>
+					<PeopleFilter />
+					<div className="table-responsive">
+						<table className="table">
+							<thead>
+								<tr>
+									<th>Date</th>
+									<th>Who</th>
+									<th>Field</th>
+									<th>Home</th>
+									<th>Away</th>
+								</tr>
+							</thead>
+							<tbody>
+								{games.map(
+									({
+										date: dateString,
+										who,
+										field,
+										home,
+										away,
+									}) => {
+										const date = parseDate(
+											dateString,
+											'yyyy-LL-dd h:mmaa',
+											new Date()
+										)
+										return (
+											<tr
+												key={`${date}-${who}`}
+												className={
+													shouldMarkPastGames &&
+													isPast(date)
+														? 'table-secondary'
+														: ''
+												}
+												style={{
+													borderLeft: `5px solid ${
+														colours[
+															who as keyof typeof colours
+														]
+													}`,
+												}}
+											>
+												<td>
+													<div className="d-none d-lg-block">
+														{dateFormat(
+															date,
+															'eee LLL d'
+														)}
+													</div>
+													<div className="d-lg-none">
+														{dateFormat(
+															date,
+															'eee'
+														)}
+													</div>
+													<div className="d-lg-none">
+														{dateFormat(
+															date,
+															'LLL d'
+														)}
+													</div>
+													<div>
+														{dateFormat(
+															date,
+															'h:mma'
+														)}
+													</div>
+												</td>
+												<td>{who}</td>
+												<td>{field}</td>
+												<td>{home}</td>
+												<td>{away}</td>
+											</tr>
+										)
+									}
+								)}
+							</tbody>
+						</table>
+					</div>
+				</>
+			)}
 		</div>
 	)
 }
@@ -254,10 +299,12 @@ export async function getStaticProps() {
 	const gameData = peopleWithCsvString.reduce<GameData[]>(
 		(result, { who, csvString }) => [
 			...result,
-			...parse(csvString as string, { columns: true }).map((gameRow) => ({
-				...gameRow,
-				who,
-			})),
+			...parse(csvString as string, { columns: true }).map(
+				(gameRow: GameData[]) => ({
+					...gameRow,
+					who,
+				})
+			),
 		],
 		[]
 	)
