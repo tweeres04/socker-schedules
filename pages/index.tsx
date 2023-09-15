@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import { parse } from 'csv-parse/sync'
-import _ from 'lodash'
+import { orderBy, capitalize } from 'lodash'
 import {
 	parse as parseDate,
 	format as dateFormat,
@@ -27,44 +27,35 @@ interface GameData {
 	field_name: string
 	home_team: string
 	visit_team: string
+	who: string
 }
 
 const colours = {
-	Mo: '#231F20',
-	Kat: '#BB4430',
-	Nad: '#7EBDC2',
+	Mo: '#51a3a3',
+	Kat: '#75485e',
+	Nad: '#cb904d',
+	Tash: '#DFCC74',
+	Chris: '#C3E991',
 }
 
 function cleanDate(date: string) {
 	return date.replace('  ', ' ')
 }
 
-function cleanTeam(team: string) {
-	return team.replace("Susan's", 'Susans')
-}
-
 function gameFactory({
 	Date: date,
 	Time,
-	division_name,
 	field_name,
 	home_team,
 	visit_team,
+	who,
 }: GameData): Game {
-	const who =
-		division_name === 'Division 3'
-			? 'Nad'
-			: division_name === 'Premier'
-			? 'Mo'
-			: division_name === 'Over 30'
-			? 'Kat'
-			: '?'
 	return {
 		date: cleanDate(`${date} ${Time}`),
-		who,
+		who: capitalize(who),
 		field: field_name,
-		home: cleanTeam(home_team),
-		away: cleanTeam(visit_team),
+		home: home_team,
+		away: visit_team,
 	}
 }
 
@@ -200,23 +191,27 @@ export async function getStaticProps() {
 		console.log('Skipping downloading schedules')
 	}
 
-	const people = ['nad', 'mo', 'kat']
-	const csvStrings = await Promise.all(
-		people.map((person) => {
-			return kv.get<string>(`socker-schedules:${person}`)
-		})
+	const people = ['nad', 'mo', 'kat', 'tash', 'chris']
+	const peopleWithCsvString = await Promise.all(
+		people.map(async (person) => ({
+			who: person,
+			csvString: await kv.get<string>(`socker-schedules:${person}`),
+		}))
 	)
 
-	const gameData = csvStrings.reduce<GameData[]>(
-		(result, csvString) => [
+	const gameData = peopleWithCsvString.reduce<GameData[]>(
+		(result, { who, csvString }) => [
 			...result,
-			...parse(csvString as string, { columns: true }),
+			...parse(csvString as string, { columns: true }).map((gameRow) => ({
+				...gameRow,
+				who,
+			})),
 		],
 		[]
 	)
 
 	let games = gameData.map(gameFactory)
-	games = _.orderBy(games, 'date')
+	games = orderBy(games, 'date')
 
 	const dateFetchedFormatted = new Intl.DateTimeFormat('en-CA', {
 		dateStyle: 'full',
