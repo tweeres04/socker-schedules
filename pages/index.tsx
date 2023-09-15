@@ -200,7 +200,9 @@ function Home({ games, dateFetched }: GameProps) {
 							<thead>
 								<tr>
 									<th>Date</th>
-									<th>Who</th>
+									{peopleToShow.length !== 1 ? (
+										<th>Who</th>
+									) : null}
 									<th>Field</th>
 									<th>Home</th>
 									<th>Away</th>
@@ -263,7 +265,9 @@ function Home({ games, dateFetched }: GameProps) {
 														)}
 													</div>
 												</td>
-												<td>{who}</td>
+												{peopleToShow.length !== 1 ? (
+													<td>{who}</td>
+												) : null}
 												<td>{field}</td>
 												<td>{home}</td>
 												<td>{away}</td>
