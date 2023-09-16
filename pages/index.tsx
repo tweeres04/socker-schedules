@@ -287,7 +287,12 @@ function Home({ games, dateFetched }: GameProps) {
 export async function getStaticProps() {
 	const dateFetched = await kv.get<string>(`socker-schedules:fetch-date`)
 
-	if (differenceInHours(new Date(), new Date(dateFetched as string)) > 12) {
+	const hoursSinceFetched = differenceInHours(
+		new Date(),
+		new Date(dateFetched as string)
+	)
+
+	if (hoursSinceFetched > 12) {
 		await downloadSchedules()
 	} else {
 		console.log('Skipping downloading schedules')
