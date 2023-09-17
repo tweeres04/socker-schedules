@@ -284,7 +284,7 @@ function Home({ games, dateFetched }: GameProps) {
 	)
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
 	const dateFetched = await kv.get<string>(`socker-schedules:fetch-date`)
 
 	const hoursSinceFetched = differenceInHours(
