@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import { parse } from 'csv-parse/sync'
@@ -173,6 +174,7 @@ function Home({ games, dateFetched }: GameProps) {
 				<link rel="icon" href="/soccer-ball.png" />
 				<link rel="manifest" href="/manifest.json"></link>
 				<link rel="apple-touch-icon" href="/soccer-ball.png"></link>
+				<meta name="robots" content="noindex"></meta>
 				<meta
 					name="apple-mobile-web-app-status-bar-style"
 					content="black"
@@ -186,7 +188,20 @@ function Home({ games, dateFetched }: GameProps) {
 				<style>{`td {
 					vertical-align: middle;
 				}`}</style>
+				{/* Google tag (gtag.js) */}
 			</Head>
+			{process.env.NODE_ENV === 'production' ? (
+				<>
+					<Script src="https://www.googletagmanager.com/gtag/js?id=G-WK7Y50LKYS"></Script>
+					<Script id="google-analytics">
+						{`window.dataLayer = window.dataLayer || [];
+						function gtag(){dataLayer.push(arguments);}
+						gtag('js', new Date());
+
+						gtag('config', 'G-WK7Y50LKYS');`}
+					</Script>
+				</>
+			) : null}
 
 			<h1 className="mt-1">Socker Schedules</h1>
 			<p>
