@@ -7,6 +7,7 @@ import {
 	format as dateFormat,
 	isPast,
 	differenceInHours,
+	isToday,
 } from 'date-fns'
 import { get, set } from 'idb-keyval'
 import { Game, getSchedulesFromDatabase } from '../lib/getSchedules'
@@ -109,6 +110,29 @@ function usePeopleFilter(games: Game[]) {
 	return { loading, peopleToShow, PeopleFilter }
 }
 
+function useShowPastGamesFilter() {
+	const [showPastGames, setShowPastGames] = useState(false)
+
+	function ShowPastGamesFilter() {
+		return (
+			<div className="form-check form-check-inline">
+				<label htmlFor="past_games_filter" className="form-check-label">
+					Past games
+				</label>
+				<input
+					className="form-check-input"
+					id="past_games_filter"
+					type="checkbox"
+					onChange={() => setShowPastGames((prevValue) => !prevValue)}
+					checked={showPastGames}
+				/>
+			</div>
+		)
+	}
+
+	return { showPastGames, ShowPastGamesFilter }
+}
+
 function useGames(initialGames: Game[], initialFetchDate: string) {
 	let [games, setGames] = useState(initialGames)
 
@@ -151,6 +175,7 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 		PeopleFilter,
 		peopleToShow,
 	} = usePeopleFilter(games)
+	const { showPastGames, ShowPastGamesFilter } = useShowPastGamesFilter()
 
 	const zonedTime = utcToZonedTime(
 		new Date(fetchDate as string),
@@ -163,6 +188,14 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 
 	if (peopleToShow.length > 0) {
 		games = games.filter((g) => peopleToShow.includes(g.who))
+	}
+
+	if (!showPastGames) {
+		games = games.filter((g) => {
+			const date = parseDate(g.date, 'yyyy-LL-dd h:mmaa', new Date())
+
+			return isToday(date) || !isPast(date)
+		})
 	}
 
 	return (
@@ -212,6 +245,7 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 			{loadingPeopleToShow ? null : (
 				<>
 					<PeopleFilter />
+					<ShowPastGamesFilter />
 					<div className="table-responsive">
 						<table className="table">
 							<thead>
@@ -244,7 +278,9 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 												key={`${date}-${who}`}
 												className={
 													shouldMarkPastGames &&
-													isPast(date)
+													isToday(date)
+														? 'fw-bold'
+														: isPast(date)
 														? 'table-secondary'
 														: ''
 												}
