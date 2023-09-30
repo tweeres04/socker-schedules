@@ -244,8 +244,10 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 			</p>
 			{loadingPeopleToShow ? null : (
 				<>
-					<PeopleFilter />
-					<ShowPastGamesFilter />
+					<div className="py-1 overflow-auto text-nowrap">
+						<PeopleFilter />
+						<ShowPastGamesFilter />
+					</div>
 					<div className="table-responsive">
 						<table className="table">
 							<thead>
