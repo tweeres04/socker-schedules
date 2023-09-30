@@ -1,5 +1,47 @@
 import { kv } from '@vercel/kv'
 import fetch from 'node-fetch'
+import { capitalize } from 'lodash'
+import { parse } from 'csv-parse/sync'
+import { orderBy } from 'lodash'
+
+export interface Game {
+	date: string
+	who: string
+	field: string
+	home: string
+	away: string
+}
+
+interface GameData {
+	Date: string
+	Time: string
+	division_name: string
+	field_name: string
+	home_team: string
+	visit_team: string
+	who: string
+}
+
+function cleanDate(date: string) {
+	return date.replace('  ', ' ')
+}
+
+function gameFactory({
+	Date: date,
+	Time,
+	field_name,
+	home_team,
+	visit_team,
+	who,
+}: GameData): Game {
+	return {
+		date: cleanDate(`${date} ${Time}`),
+		who: capitalize(who),
+		field: field_name,
+		home: home_team,
+		away: visit_team,
+	}
+}
 
 const urls = {
 	kat: {
@@ -29,7 +71,7 @@ const urls = {
 	},
 }
 
-async function downloadSchedule(person) {
+async function downloadSchedule(person: keyof typeof urls) {
 	const params = new URLSearchParams(urls[person].postData)
 	const response = await fetch(urls[person].url, {
 		method: 'POST',
@@ -38,29 +80,91 @@ async function downloadSchedule(person) {
 
 	const data = await response.text()
 
-	await kv.set(`socker-schedules:${person}`, data)
+	kv.set(`socker-schedules:${person}`, data)
 
 	console.log(`Saved schedule for ${person}`)
+
+	return data
 }
 
 async function writeFetchDate() {
 	const fetchDate = new Date().toISOString()
-	await kv.set('socker-schedules:fetch-date', fetchDate)
+	kv.set('socker-schedules:fetch-date', fetchDate)
 
 	console.log(`Saved fetchDate: ${fetchDate}`)
+
+	return fetchDate
+}
+
+type Person = 'nad' | 'mo' | 'kat' | 'tash' | 'chris'
+
+async function csvStringsToGames(
+	personToCsvStringFn: (person: Person) => Promise<string | null>
+) {
+	const people: Person[] = ['nad', 'mo', 'kat', 'tash', 'chris']
+	const peopleWithCsvString = await Promise.all(
+		people.map(async (person) => ({
+			who: person,
+			csvString: await personToCsvStringFn(person),
+		}))
+	)
+
+	const gameData = peopleWithCsvString.reduce<GameData[]>(
+		(result, { who, csvString }) => [
+			...result,
+			...parse(csvString as string, { columns: true }).map(
+				(gameRow: GameData[]) => ({
+					...gameRow,
+					who,
+				})
+			),
+		],
+		[]
+	)
+
+	let games = gameData.map(gameFactory)
+	games = orderBy(games, 'date')
+
+	return games
 }
 
 export async function downloadSchedules() {
-	try {
-		await Promise.all([
-			downloadSchedule('mo'),
-			downloadSchedule('nad'),
-			downloadSchedule('kat'),
-			downloadSchedule('tash'),
-			downloadSchedule('chris'),
-			writeFetchDate(),
-		])
-	} catch (e) {
-		console.error(e)
+	const [mo, nad, kat, tash, chris, fetchDate] = await Promise.all([
+		downloadSchedule('mo'),
+		downloadSchedule('nad'),
+		downloadSchedule('kat'),
+		downloadSchedule('tash'),
+		downloadSchedule('chris'),
+		writeFetchDate(),
+	])
+
+	const scheduleHash: Record<Person, string> = {
+		mo,
+		nad,
+		kat,
+		tash,
+		chris,
+	}
+
+	const games = await csvStringsToGames((person) =>
+		Promise.resolve(scheduleHash[person])
+	)
+
+	return {
+		games,
+		fetchDate,
+	}
+}
+
+export async function getSchedulesFromDatabase() {
+	const games = await csvStringsToGames((person: string) =>
+		kv.get<string>(`socker-schedules:${person}`)
+	)
+
+	const fetchDate = await kv.get<string>(`socker-schedules:fetch-date`)
+
+	return {
+		games,
+		fetchDate,
 	}
 }

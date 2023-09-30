@@ -1,37 +1,16 @@
 import Script from 'next/script'
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
-import { parse } from 'csv-parse/sync'
-import { orderBy, capitalize, uniq } from 'lodash'
+import { capitalize, uniq } from 'lodash'
 import {
 	parse as parseDate,
 	format as dateFormat,
 	isPast,
 	differenceInHours,
 } from 'date-fns'
-import { utcToZonedTime } from 'date-fns-tz'
-import { kv } from '@vercel/kv'
 import { get, set } from 'idb-keyval'
-
-import { downloadSchedules } from '../lib/getSchedules.mjs'
-
-interface Game {
-	date: string
-	who: string
-	field: string
-	home: string
-	away: string
-}
-
-interface GameData {
-	Date: string
-	Time: string
-	division_name: string
-	field_name: string
-	home_team: string
-	visit_team: string
-	who: string
-}
+import { Game, getSchedulesFromDatabase } from '../lib/getSchedules'
+import { utcToZonedTime } from 'date-fns-tz'
 
 const colours = {
 	Mo: '#51a3a3',
@@ -41,30 +20,9 @@ const colours = {
 	Chris: '#3E442B',
 }
 
-function cleanDate(date: string) {
-	return date.replace('  ', ' ')
-}
-
-function gameFactory({
-	Date: date,
-	Time,
-	field_name,
-	home_team,
-	visit_team,
-	who,
-}: GameData): Game {
-	return {
-		date: cleanDate(`${date} ${Time}`),
-		who: capitalize(who),
-		field: field_name,
-		home: home_team,
-		away: visit_team,
-	}
-}
-
 type GameProps = {
-	games: Game[]
-	dateFetched: string
+	initialGames: Game[]
+	initialFetchDate: string
 }
 
 function useShouldMarkPastGames() {
@@ -137,7 +95,7 @@ function usePeopleFilter(games: Game[]) {
 					id={`${p}_filter`}
 					key={p}
 					type="checkbox"
-					onClick={togglePerson(p)}
+					onChange={togglePerson(p)}
 					checked={peopleToShow.some((p_) => p === p_)}
 					style={{
 						backgroundColor: colours[p as keyof typeof colours],
@@ -151,13 +109,57 @@ function usePeopleFilter(games: Game[]) {
 	return { loading, peopleToShow, PeopleFilter }
 }
 
-function Home({ games, dateFetched }: GameProps) {
+function useGames(initialGames: Game[], initialFetchDate: string) {
+	let [games, setGames] = useState(initialGames)
+
+	let [fetchDate, setFetchDate] = useState(initialFetchDate)
+
+	useEffect(() => {
+		async function fetchUpdatedGames() {
+			const hoursSinceFetched = differenceInHours(
+				new Date(),
+				new Date(initialFetchDate)
+			)
+
+			if (hoursSinceFetched > 12) {
+				const response = await fetch('/api/games').then((response) =>
+					response.json()
+				)
+
+				const { games: updatedGames, fetchDate: updatedFetchDate } =
+					response
+				setGames(updatedGames)
+				setFetchDate(updatedFetchDate)
+			} else {
+				console.log(
+					`Skipping downloading schedules, ${hoursSinceFetched} hours since last fetch`
+				)
+			}
+		}
+
+		fetchUpdatedGames()
+	}, [initialFetchDate])
+
+	return { games, fetchDate }
+}
+
+function Home({ initialGames, initialFetchDate }: GameProps) {
+	let { games, fetchDate } = useGames(initialGames, initialFetchDate)
 	const shouldMarkPastGames = useShouldMarkPastGames()
 	const {
 		loading: loadingPeopleToShow,
 		PeopleFilter,
 		peopleToShow,
 	} = usePeopleFilter(games)
+
+	const zonedTime = utcToZonedTime(
+		new Date(fetchDate as string),
+		'America/Vancouver'
+	)
+	const fetchDateFormatted = new Intl.DateTimeFormat('en-CA', {
+		dateStyle: 'full',
+		timeStyle: 'short',
+	}).format(zonedTime)
 
 	if (peopleToShow.length > 0) {
 		games = games.filter((g) => peopleToShow.includes(g.who))
@@ -188,8 +190,8 @@ function Home({ games, dateFetched }: GameProps) {
 				<style>{`td {
 					vertical-align: middle;
 				}`}</style>
-				{/* Google tag (gtag.js) */}
 			</Head>
+			{/* Google tag (gtag.js) */}
 			{process.env.NODE_ENV === 'production' ? (
 				<>
 					<Script src="https://www.googletagmanager.com/gtag/js?id=G-WK7Y50LKYS"></Script>
@@ -205,7 +207,7 @@ function Home({ games, dateFetched }: GameProps) {
 
 			<h1 className="mt-1">Socker Schedules</h1>
 			<p>
-				<small>Last updated: {dateFetched}</small>
+				<small>Last updated: {fetchDateFormatted}</small>
 			</p>
 			{loadingPeopleToShow ? null : (
 				<>
@@ -300,53 +302,15 @@ function Home({ games, dateFetched }: GameProps) {
 }
 
 export async function getServerSideProps() {
-	const dateFetched = await kv.get<string>(`socker-schedules:fetch-date`)
+	const { games: initialGames, fetchDate: initialFetchDate } =
+		await getSchedulesFromDatabase()
 
-	const hoursSinceFetched = differenceInHours(
-		new Date(),
-		new Date(dateFetched as string)
-	)
-
-	if (hoursSinceFetched > 12) {
-		await downloadSchedules()
-	} else {
-		console.log('Skipping downloading schedules')
+	return {
+		props: {
+			initialGames,
+			initialFetchDate: initialFetchDate,
+		},
 	}
-
-	const people = ['nad', 'mo', 'kat', 'tash', 'chris']
-	const peopleWithCsvString = await Promise.all(
-		people.map(async (person) => ({
-			who: person,
-			csvString: await kv.get<string>(`socker-schedules:${person}`),
-		}))
-	)
-
-	const gameData = peopleWithCsvString.reduce<GameData[]>(
-		(result, { who, csvString }) => [
-			...result,
-			...parse(csvString as string, { columns: true }).map(
-				(gameRow: GameData[]) => ({
-					...gameRow,
-					who,
-				})
-			),
-		],
-		[]
-	)
-
-	let games = gameData.map(gameFactory)
-	games = orderBy(games, 'date')
-
-	const zonedTime = utcToZonedTime(
-		new Date(dateFetched as string),
-		'America/Vancouver'
-	)
-	const dateFetchedFormatted = new Intl.DateTimeFormat('en-CA', {
-		dateStyle: 'full',
-		timeStyle: 'short',
-	}).format(zonedTime)
-
-	return { props: { games, dateFetched: dateFetchedFormatted } }
 }
 
 export default Home
