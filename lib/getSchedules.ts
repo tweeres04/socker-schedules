@@ -52,12 +52,12 @@ const urls = {
 	mo: {
 		url: 'https://liwsa.com/webapps/spappz_live/schedule_maint',
 		postData:
-			'reg_year=2025&flt_area=sffc&season=All&division=premier&agegroup=All&team_refno=38&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
+			'reg_year=2025&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=38&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 	},
 	tash: {
 		url: 'https://liwsa.com/webapps/spappz_live/schedule_maint',
 		postData:
-			'reg_year=2025&flt_area=sffc&season=All&division=premier&agegroup=All&team_refno=57&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
+			'reg_year=2025&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=57&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 	},
 	nad: {
 		url: 'https://visl.org/webapps/spappz_live/schedule_maint',
