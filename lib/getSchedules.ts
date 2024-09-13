@@ -142,3 +142,23 @@ export async function downloadSchedules() {
 		fetchDate,
 	}
 }
+
+export async function getCachedSchedules() {
+	const schedulesPromise = Object.keys(fetchers).map((person) =>
+		kv.get<Game[]>(`socker-schedules:${person}`)
+	)
+	const fetchDatePromise = kv.get<string>(`socker-schedules:fetch-date`)
+
+	const [schedules, fetchDate] = await Promise.all([
+		Promise.all(schedulesPromise),
+		fetchDatePromise,
+	])
+
+	let games = schedules.flat()
+	games = orderBy(games, 'date')
+
+	return {
+		games,
+		fetchDate,
+	}
+}

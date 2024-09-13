@@ -10,7 +10,7 @@ import {
 	isToday,
 } from 'date-fns'
 import { get, set } from 'idb-keyval'
-import { Game, downloadSchedules } from '../lib/getSchedules'
+import { Game, getCachedSchedules } from '../lib/getSchedules'
 import { utcToZonedTime } from 'date-fns-tz'
 
 const colours = {
@@ -349,7 +349,7 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 
 export async function getServerSideProps() {
 	const { games: initialGames, fetchDate: initialFetchDate } =
-		await downloadSchedules()
+		await getCachedSchedules()
 
 	return {
 		props: {
