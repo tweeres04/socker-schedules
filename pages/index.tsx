@@ -1,7 +1,7 @@
 import Script from 'next/script'
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
-import { capitalize, uniq } from 'lodash'
+import { startCase, uniq } from 'lodash'
 import {
 	parse as parseDate,
 	format as dateFormat,
@@ -10,15 +10,16 @@ import {
 	isToday,
 } from 'date-fns'
 import { get, set } from 'idb-keyval'
-import { Game, getSchedulesFromDatabase } from '../lib/getSchedules'
+import { Game, downloadSchedules } from '../lib/getSchedules'
 import { utcToZonedTime } from 'date-fns-tz'
 
 const colours = {
-	Mo: '#51a3a3',
-	Kat: '#75485e',
-	Nad: '#cb904d',
-	Tash: '#132E32',
-	Chris: '#3E442B',
+	mo: '#51a3a3',
+	kat: '#75485e',
+	nad: '#cb904d',
+	tash: '#132E32',
+	owls: '#713f12',
+	'green-machine': '#14532d',
 }
 
 type GameProps = {
@@ -49,7 +50,7 @@ function useShouldMarkPastGames() {
 }
 
 function peopleFromGames(games: Game[]) {
-	return uniq(games.map((g) => g.who)).map(capitalize)
+	return uniq(games.map((g) => g.who))
 }
 
 function usePeopleFilter(games: Game[]) {
@@ -89,7 +90,7 @@ function usePeopleFilter(games: Game[]) {
 		return people.map((p) => (
 			<div className="form-check form-check-inline" key={p}>
 				<label htmlFor={`${p}_filter`} className="form-check-label">
-					{p}
+					{startCase(p.replace('-', ' '))}
 				</label>
 				<input
 					className="form-check-input"
@@ -321,7 +322,14 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 													</div>
 												</td>
 												{peopleToShow.length !== 1 ? (
-													<td>{who}</td>
+													<td>
+														{startCase(
+															who.replace(
+																'-',
+																' '
+															)
+														)}
+													</td>
 												) : null}
 												<td>{field}</td>
 												<td>{home}</td>
@@ -341,7 +349,7 @@ function Home({ initialGames, initialFetchDate }: GameProps) {
 
 export async function getServerSideProps() {
 	const { games: initialGames, fetchDate: initialFetchDate } =
-		await getSchedulesFromDatabase()
+		await downloadSchedules()
 
 	return {
 		props: {
