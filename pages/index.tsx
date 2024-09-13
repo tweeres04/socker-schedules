@@ -54,6 +54,7 @@ function peopleFromGames(games: Game[]) {
 }
 
 function usePeopleFilter(games: Game[]) {
+	const migrationKey = '2024-09-13_peopleToShow'
 	const keyvalKey = 'peopleToShow'
 	const [peopleToShow, setPeopleToShow] = useState<string[]>([])
 	const [loading, setLoading] = useState(true)
@@ -61,6 +62,11 @@ function usePeopleFilter(games: Game[]) {
 
 	useEffect(() => {
 		async function getStoredPeople() {
+			const migration = await get(migrationKey)
+			if (!migration) {
+				await set(keyvalKey, [])
+				set(migrationKey, new Date().toISOString())
+			}
 			const result = await get(keyvalKey)
 			if (result) {
 				setPeopleToShow(result)
