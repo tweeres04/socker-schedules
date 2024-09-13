@@ -126,7 +126,9 @@ async function writeFetchDate() {
 
 export async function downloadSchedules() {
 	const schedulesPromise = Promise.all(
-		Object.keys(fetchers).map(downloadSchedule)
+		Object.keys(fetchers).map(
+			downloadSchedule as (value: string) => Promise<Game[]>
+		)
 	)
 	const [schedules, fetchDate] = await Promise.all([
 		schedulesPromise,
