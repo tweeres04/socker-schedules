@@ -24,15 +24,6 @@ export async function getVsscSchedule(url: string, teamName: string) {
 				1
 			)
 			return gameCells
-				.filter((gameCell) => {
-					const teams = gameCell.querySelectorAll('a')
-					const teamOne = teams[0]?.textContent || ''
-					const teamTwo = teams[1]?.textContent || ''
-
-					return (
-						teamOne.includes(teamName) || teamTwo.includes(teamName)
-					)
-				})
 				.flatMap((gameCell, i) => {
 					const teams = gameCell.querySelectorAll('a')
 					const teamOne = teams[0]?.textContent?.trim() || ''
@@ -55,6 +46,12 @@ export async function getVsscSchedule(url: string, teamName: string) {
 						away: teamTwo,
 					}
 					return game
+				})
+				.filter((game) => {
+					return (
+						game.home.includes(teamName) ||
+						game.away.includes(teamName)
+					)
 				})
 		})
 	})
