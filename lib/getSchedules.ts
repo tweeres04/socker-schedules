@@ -98,7 +98,7 @@ const fetchers = {
 		).then((games) => games.map((game) => ({ ...game, who: 'owls' }))),
 	'green-machine': () =>
 		getVsscSchedule(
-			'https://vssc.leaguelab.com/league/76778/schedule',
+			'https://vssc.leaguelab.com/league/80834/schedule',
 			'Green Machine'
 		).then((games) =>
 			games.map((game) => ({ ...game, who: 'green-machine' }))
