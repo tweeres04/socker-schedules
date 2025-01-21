@@ -93,7 +93,7 @@ const fetchers = {
 		}),
 	owls: () =>
 		getVsscSchedule(
-			'https://vssc.leaguelab.com/league/76780/schedule',
+			'https://vssc.leaguelab.com/league/80614/schedule',
 			'THE OWLS'
 		).then((games) => games.map((game) => ({ ...game, who: 'owls' }))),
 	'green-machine': () =>
