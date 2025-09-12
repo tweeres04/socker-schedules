@@ -86,12 +86,12 @@ const fetchers = {
 			postData:
 				'reg_year=2026&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=57&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 		}),
-	nad: () =>
-		getSpAppzSchedule('nad', {
-			url: 'https://visl.org/webapps/spappz_live/schedule_maint',
-			postData:
-				'reg_year=2026&flt_area=cas&season=All&division=2&sched_pool=All&team_refno=All&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=visl&returnto=&firsttime=0',
-		}),
+	// nad: () =>
+	// 	getSpAppzSchedule('nad', {
+	// 		url: 'https://visl.org/webapps/spappz_live/schedule_maint',
+	// 		postData:
+	// 			'reg_year=2026&flt_area=cas&season=All&division=3&sched_pool=All&team_refno=All&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=visl&returnto=&firsttime=0',
+	// 	}),
 	owls: () =>
 		getVsscSchedule(
 			'https://vssc.leaguelab.com/league/90410/schedule',
