@@ -24,7 +24,8 @@ interface GameData {
 }
 
 function cleanDate(date: string) {
-	return date.replace('  ', ' ')
+	const [m, d, y] = date.split('/')
+	return `${y}-${m}-${d}`
 }
 
 function gameFactory({
@@ -36,7 +37,7 @@ function gameFactory({
 	who,
 }: GameData): Game {
 	return {
-		date: cleanDate(`${date} ${Time}`),
+		date: `${cleanDate(date)} ${Time.replace(' ', '')}`,
 		who: who,
 		field: field_name,
 		home: home_team,
@@ -71,34 +72,34 @@ const fetchers = {
 		getSpAppzSchedule('kat', {
 			url: 'https://liwsa.com/webapps/spappz_live/schedule_maint',
 			postData:
-				'reg_year=2025&flt_area=cfc&season=All&division=o30&agegroup=All&team_refno=24&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
+				'reg_year=2026&flt_area=cfc&season=All&division=o30&agegroup=All&team_refno=24&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 		}),
 	mo: () =>
 		getSpAppzSchedule('mo', {
 			url: 'https://liwsa.com/webapps/spappz_live/schedule_maint',
 			postData:
-				'reg_year=2025&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=38&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
+				'reg_year=2026&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=38&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 		}),
 	tash: () =>
 		getSpAppzSchedule('tash', {
 			url: 'https://liwsa.com/webapps/spappz_live/schedule_maint',
 			postData:
-				'reg_year=2025&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=57&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
+				'reg_year=2026&flt_area=sffc&season=All&division=tiereddiv&agegroup=All&team_refno=57&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=All&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=liwsa&returnto=&firsttime=0',
 		}),
 	nad: () =>
 		getSpAppzSchedule('nad', {
 			url: 'https://visl.org/webapps/spappz_live/schedule_maint',
 			postData:
-				'reg_year=2025&flt_area=cas&season=All&division=2&sched_pool=All&team_refno=All&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=visl&returnto=&firsttime=0',
+				'reg_year=2026&flt_area=cas&season=All&division=2&sched_pool=All&team_refno=All&stype=All&sname=All&sstat=All&fieldref=All&fdate=All&tdate=&dow=All&start_time=All&sortby1=sched_time&sortby2=sched_type&sortby3=sched_name&sortby4=None&cmd=Excel&appid=visl&returnto=&firsttime=0',
 		}),
 	owls: () =>
 		getVsscSchedule(
-			'https://vssc.leaguelab.com/league/80614/schedule',
+			'https://vssc.leaguelab.com/league/90410/schedule',
 			'THE OWLS'
 		).then((games) => games.map((game) => ({ ...game, who: 'owls' }))),
 	'green-machine': () =>
 		getVsscSchedule(
-			'https://vssc.leaguelab.com/league/80834/schedule',
+			'https://vssc.leaguelab.com/league/90284/schedule',
 			'Green Machine'
 		).then((games) =>
 			games.map((game) => ({ ...game, who: 'green-machine' }))
