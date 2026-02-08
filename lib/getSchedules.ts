@@ -47,7 +47,7 @@ function gameFactory({
 
 async function getSpAppzSchedule(
 	person: keyof typeof fetchers,
-	{ url, postData }: { url: string; postData: string }
+	{ url, postData }: { url: string; postData: string },
 ) {
 	const params = new URLSearchParams(postData)
 	const response = await fetch(url, {
@@ -94,15 +94,15 @@ const fetchers = {
 	// 	}),
 	owls: () =>
 		getVsscSchedule(
-			'https://vssc.leaguelab.com/league/90410/schedule',
-			'THE OWLS'
+			'https://vssc.leaguelab.com/league/94493/schedule',
+			'THE OWLS',
 		).then((games) => games.map((game) => ({ ...game, who: 'owls' }))),
 	'green-machine': () =>
 		getVsscSchedule(
 			'https://vssc.leaguelab.com/league/90284/schedule',
-			'Green Machine'
+			'Green Machine',
 		).then((games) =>
-			games.map((game) => ({ ...game, who: 'green-machine' }))
+			games.map((game) => ({ ...game, who: 'green-machine' })),
 		),
 }
 
@@ -128,8 +128,8 @@ async function writeFetchDate() {
 export async function downloadSchedules() {
 	const schedulesPromise = Promise.all(
 		Object.keys(fetchers).map(
-			downloadSchedule as (value: string) => Promise<Game[]>
-		)
+			downloadSchedule as (value: string) => Promise<Game[]>,
+		),
 	)
 	const [schedules, fetchDate] = await Promise.all([
 		schedulesPromise,
@@ -148,7 +148,7 @@ export async function downloadSchedules() {
 
 export async function getCachedSchedules() {
 	const schedulesPromise = Object.keys(fetchers).map((person) =>
-		kv.get<Game[]>(`socker-schedules:${person}`)
+		kv.get<Game[]>(`socker-schedules:${person}`),
 	)
 	const fetchDatePromise = kv.get<string>(`socker-schedules:fetch-date`)
 
